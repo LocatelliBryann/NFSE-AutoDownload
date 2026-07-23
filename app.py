@@ -896,8 +896,15 @@ def build_period_zip(
 
 @app.route("/")
 def index():
-    data_inicial = request.args.get("data_inicial", "")
-    data_final = request.args.get("data_final", "")
+    ontem = (datetime.now().date()).isoformat()
+    try:
+        from datetime import timedelta
+        ontem = (datetime.now().date() - timedelta(days=1)).isoformat()
+    except Exception:
+        pass
+
+    data_inicial = request.args.get("data_inicial", ontem)
+    data_final = request.args.get("data_final", ontem)
 
     with db() as con:
         docs = con.execute(
@@ -1009,19 +1016,46 @@ def filtrar():
 
 @app.get("/baixar-periodo")
 def baixar_periodo():
+    """
+    Fluxo simplificado para o financeiro:
+
+    1. sincroniza automaticamente os documentos novos;
+    2. filtra a data escolhida;
+    3. baixa os PDFs/DANFSe;
+    4. entrega um ZIP.
+
+    A requisição fica aberta enquanto o processamento acontece. Para o usuário,
+    parece uma única ação: escolher a data e clicar em baixar.
+    """
     try:
         data_inicial, data_final = validate_period(
             request.args.get("data_inicial"),
             request.args.get("data_final"),
         )
 
-        include_xml = request.args.get("xml", "1") == "1"
+        include_xml = request.args.get("xml", "0") == "1"
         include_pdf = request.args.get("pdf", "1") == "1"
+        sincronizar = request.args.get("sincronizar", "1") == "1"
 
         if not include_xml and not include_pdf:
-            raise ValueError(
-                "Escolha pelo menos XML ou PDF."
+            raise ValueError("Escolha pelo menos XML ou PDF.")
+
+        sync_result = None
+
+        if sincronizar:
+            start_nsu = get_last_nsu() + 1
+            sync_result = run_download(
+                start_nsu=start_nsu,
+                limit=DEFAULT_BATCH_LIMIT,
             )
+
+            if sync_result["erros"] > 0:
+                flash(
+                    "A sincronização encontrou um erro, mas o sistema tentará "
+                    "gerar o ZIP com os documentos já disponíveis. "
+                    f'Detalhe: {sync_result["mensagem"]}',
+                    "warning",
+                )
 
         zip_buffer, total, pdf_errors = build_period_zip(
             data_inicial,
@@ -1030,9 +1064,7 @@ def baixar_periodo():
             include_pdf=include_pdf,
         )
 
-        filename = (
-            f"NFSe_{data_inicial}_a_{data_final}.zip"
-        )
+        filename = f"NFSe_{data_inicial}_a_{data_final}.zip"
 
         if pdf_errors:
             flash(
@@ -1186,7 +1218,6 @@ def teste_pdf(chave: str):
             f"<pre>{exc}</pre>",
             500,
         )
-
 
 
 if __name__ == "__main__":
