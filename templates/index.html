@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NFS-e Downloader Local</title>
+    <style>
+        :root { font-family: Arial, sans-serif; color: #1f2937; }
+        body { margin: 0; background: #f3f4f6; }
+        header { background: #1f4e78; color: white; padding: 18px 28px; }
+        main { max-width: 1180px; margin: 22px auto; padding: 0 16px 40px; }
+        .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
+        .card { background: white; padding: 20px; border-radius: 10px;
+                box-shadow: 0 1px 5px rgba(0,0,0,.12); margin-bottom: 18px; }
+        label { display: block; font-weight: bold; margin-bottom: 6px; }
+        input { width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 14px;
+                border: 1px solid #bbb; border-radius: 6px; }
+        button { border: 0; border-radius: 6px; padding: 11px 16px; cursor: pointer;
+                 background: #1f4e78; color: white; font-weight: bold; }
+        button.secondary { background: #4b5563; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { border-bottom: 1px solid #ddd; padding: 9px; text-align: left; }
+        th { background: #eef2f7; }
+        .flash { padding: 12px; border-radius: 7px; margin-bottom: 12px; }
+        .success { background: #dcfce7; }
+        .warning { background: #fef3c7; }
+        .danger { background: #fee2e2; }
+        .ok { color: #166534; font-weight: bold; }
+        .bad { color: #b91c1c; font-weight: bold; }
+        small, .muted { color: #6b7280; }
+        code { word-break: break-all; }
+        a { color: #1d4ed8; }
+        @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<header>
+    <h1 style="margin:0">NFS-e Downloader Local</h1>
+    <div>Consulta incremental de documentos pelo NSU</div>
+</header>
+
+<main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="grid">
+        <section class="card">
+            <h2>Baixar documentos</h2>
+            <form method="post" action="/baixar">
+                <label for="nsu_inicial">NSU inicial</label>
+                <input id="nsu_inicial" name="nsu_inicial" type="number"
+                       value="{{ last_nsu + 1 }}" min="0">
+
+                <label for="limite">Máximo de NSUs nesta execução</label>
+                <input id="limite" name="limite" type="number"
+                       value="{{ default_limit }}" min="1" max="10000">
+
+                <button type="submit">Baixar novos documentos</button>
+            </form>
+            <p class="muted">
+                A execução para automaticamente após a quantidade configurada de
+                NSUs consecutivos sem documento.
+            </p>
+        </section>
+
+        <aside class="card">
+            <h2>Status</h2>
+            <p>Certificado:
+                {% if pfx_ok %}
+                    <span class="ok">encontrado</span>
+                {% else %}
+                    <span class="bad">não encontrado</span>
+                {% endif %}
+            </p>
+            <p><small><code>{{ pfx_path }}</code></small></p>
+            <p>Último NSU: <strong>{{ last_nsu }}</strong></p>
+            <p>API: <small><code>{{ api_base }}</code></small></p>
+            <p>CPF: <strong>{{ documento or "não informado" }}</strong></p>
+            <p><a href="/teste?nsu={{ last_nsu + 1 }}" target="_blank">Testar próximo NSU</a></p>
+
+            <form method="post" action="/ajustar-nsu">
+                <label for="ultimo_nsu">Corrigir último NSU</label>
+                <input id="ultimo_nsu" name="ultimo_nsu" type="number" value="{{ last_nsu }}">
+                <button class="secondary" type="submit">Salvar NSU</button>
+            </form>
+        </aside>
+    </div>
+
+    <section class="card">
+        <h2>Últimos arquivos</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>NSU</th><th>Arquivo</th><th>Data</th>
+                    <th>Tamanho</th><th>Download</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for doc in docs %}
+                <tr>
+                    <td>{{ doc.nsu }}</td>
+                    <td>{{ doc.nome_arquivo }}</td>
+                    <td>{{ doc.criado_em }}</td>
+                    <td>{{ (doc.tamanho / 1024)|round(1) }} KB</td>
+                    <td><a href="/arquivo/{{ doc.id }}">baixar</a></td>
+                </tr>
+            {% else %}
+                <tr><td colspan="5">Nenhum arquivo baixado.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <section class="card">
+        <h2>Histórico de execuções</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Início</th><th>Faixa</th><th>Consultados</th>
+                    <th>Salvos</th><th>Vazios</th><th>Erros</th><th>Mensagem</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in executions %}
+                <tr>
+                    <td>{{ item.inicio }}</td>
+                    <td>{{ item.nsu_inicial }}–{{ item.nsu_final or "" }}</td>
+                    <td>{{ item.consultados }}</td>
+                    <td>{{ item.salvos }}</td>
+                    <td>{{ item.vazios }}</td>
+                    <td>{{ item.erros }}</td>
+                    <td>{{ item.mensagem or "" }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="7">Nenhuma execução registrada.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>
