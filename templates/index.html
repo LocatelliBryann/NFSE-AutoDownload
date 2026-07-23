@@ -4,39 +4,520 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>NFS-e Downloader Local</title>
+
     <style>
-        :root { font-family: Arial, sans-serif; color: #1f2937; }
-        body { margin: 0; background: #f3f4f6; }
-        header { background: #1f4e78; color: white; padding: 18px 28px; }
-        main { max-width: 1180px; margin: 22px auto; padding: 0 16px 40px; }
-        .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
-        .card { background: white; padding: 20px; border-radius: 10px;
-                box-shadow: 0 1px 5px rgba(0,0,0,.12); margin-bottom: 18px; }
-        label { display: block; font-weight: bold; margin-bottom: 6px; }
-        input { width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 14px;
-                border: 1px solid #bbb; border-radius: 6px; }
-        button { border: 0; border-radius: 6px; padding: 11px 16px; cursor: pointer;
-                 background: #1f4e78; color: white; font-weight: bold; }
-        button.secondary { background: #4b5563; }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th, td { border-bottom: 1px solid #ddd; padding: 9px; text-align: left; }
-        th { background: #eef2f7; }
-        .flash { padding: 12px; border-radius: 7px; margin-bottom: 12px; }
-        .success { background: #dcfce7; }
-        .warning { background: #fef3c7; }
-        .danger { background: #fee2e2; }
-        .ok { color: #166534; font-weight: bold; }
-        .bad { color: #b91c1c; font-weight: bold; }
-        small, .muted { color: #6b7280; }
-        code { word-break: break-all; }
-        a { color: #1d4ed8; }
-        @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+        :root {
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            color: #172033;
+            background: #eef3f8;
+            --primary: #174a78;
+            --primary-dark: #10395e;
+            --primary-light: #e7f0f8;
+            --surface: #ffffff;
+            --surface-soft: #f7f9fc;
+            --border: #dbe4ee;
+            --text-muted: #667085;
+            --success: #166534;
+            --success-bg: #dcfce7;
+            --warning: #92400e;
+            --warning-bg: #fef3c7;
+            --danger: #b42318;
+            --danger-bg: #fee4e2;
+            --shadow: 0 8px 24px rgba(18, 48, 79, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top right, rgba(23, 74, 120, 0.08), transparent 28rem),
+                #eef3f8;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: white;
+            padding: 28px 32px;
+            box-shadow: 0 6px 20px rgba(15, 57, 94, 0.2);
+        }
+
+        .header-inner {
+            max-width: 1240px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: clamp(1.8rem, 3vw, 2.5rem);
+            letter-spacing: -0.03em;
+        }
+
+        .brand p {
+            margin: 8px 0 0;
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 1rem;
+        }
+
+        .header-badge {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        main {
+            max-width: 1240px;
+            margin: 28px auto;
+            padding: 0 18px 48px;
+        }
+
+        .flash {
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 14px;
+            border: 1px solid transparent;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+        }
+
+        .success {
+            color: var(--success);
+            background: var(--success-bg);
+            border-color: #bbf7d0;
+        }
+
+        .warning {
+            color: var(--warning);
+            background: var(--warning-bg);
+            border-color: #fde68a;
+        }
+
+        .danger {
+            color: var(--danger);
+            background: var(--danger-bg);
+            border-color: #fecaca;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.8fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            margin: 0 0 8px;
+            font-size: 1.35rem;
+            letter-spacing: -0.02em;
+        }
+
+        .card-subtitle {
+            margin: 0 0 22px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .section-title h2 {
+            margin: 0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .field-full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 700;
+            font-size: 0.94rem;
+            color: #27364b;
+        }
+
+        input {
+            width: 100%;
+            border: 1px solid #cbd7e4;
+            background: #fff;
+            border-radius: 9px;
+            padding: 11px 12px;
+            color: #172033;
+            font-size: 0.97rem;
+            outline: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(23, 74, 120, 0.12);
+        }
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        button,
+        .button-link {
+            appearance: none;
+            border: 0;
+            border-radius: 9px;
+            padding: 11px 16px;
+            cursor: pointer;
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            font-size: 0.94rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.12s ease, background 0.15s ease, box-shadow 0.15s ease;
+            text-decoration: none;
+        }
+
+        button:hover,
+        .button-link:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            text-decoration: none;
+            box-shadow: 0 6px 14px rgba(23, 74, 120, 0.18);
+        }
+
+        button.secondary,
+        .button-link.secondary {
+            background: #475467;
+        }
+
+        button.secondary:hover,
+        .button-link.secondary:hover {
+            background: #344054;
+        }
+
+        button.outline,
+        .button-link.outline {
+            background: white;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        button.outline:hover,
+        .button-link.outline:hover {
+            background: var(--primary-light);
+        }
+
+        .muted {
+            color: var(--text-muted);
+        }
+
+        .helper {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: var(--surface-soft);
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+
+        .status-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .status-item {
+            display: grid;
+            gap: 4px;
+            padding-bottom: 13px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .status-item:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .status-label {
+            color: var(--text-muted);
+            font-size: 0.84rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .status-value {
+            font-weight: 700;
+            word-break: break-word;
+        }
+
+        .status-value code {
+            font-weight: 500;
+            color: #475467;
+            font-size: 0.82rem;
+        }
+
+        .ok {
+            color: var(--success);
+        }
+
+        .bad {
+            color: var(--danger);
+        }
+
+        .filter-card {
+            background: linear-gradient(180deg, #ffffff, #fbfdff);
+        }
+
+        .filter-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .checkbox-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            align-items: center;
+            margin-top: 6px;
+        }
+
+        .checkbox-item {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            color: #344054;
+            font-weight: 600;
+        }
+
+        .checkbox-item input {
+            width: auto;
+            margin: 0;
+        }
+
+        .summary-strip {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .summary-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: 0 4px 14px rgba(18, 48, 79, 0.05);
+        }
+
+        .summary-box .label {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .summary-box .value {
+            margin-top: 6px;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 780px;
+            background: white;
+            font-size: 0.9rem;
+        }
+
+        th,
+        td {
+            padding: 12px 13px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        th {
+            background: #edf3f8;
+            color: #344054;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.035em;
+            white-space: nowrap;
+        }
+
+        tbody tr:hover {
+            background: #f8fbfe;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .file-name {
+            font-weight: 700;
+            color: #27364b;
+            max-width: 360px;
+            overflow-wrap: anywhere;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 4px 9px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .empty-state {
+            padding: 30px 16px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .small-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .small-link {
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .nsu-form {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border);
+        }
+
+        footer {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 18px 30px;
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            text-align: center;
+        }
+
+        @media (max-width: 920px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-strip {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 640px) {
+            header {
+                padding: 24px 18px;
+            }
+
+            .header-inner {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .field-full {
+                grid-column: auto;
+            }
+
+            .summary-strip {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 18px;
+                border-radius: 13px;
+            }
+
+            .button-row,
+            .filter-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            button,
+            .button-link {
+                width: 100%;
+            }
+        }
     </style>
 </head>
+
 <body>
 <header>
-    <h1 style="margin:0">NFS-e Downloader Local</h1>
-    <div>Consulta incremental de documentos pelo NSU</div>
+    <div class="header-inner">
+        <div class="brand">
+            <h1>NFS-e Downloader Local</h1>
+            <p>Sincronização, consulta por período e download em lote de NFS-e</p>
+        </div>
+        <div class="header-badge">Execução local • 127.0.0.1</div>
+    </div>
 </header>
 
 <main>
@@ -46,100 +527,370 @@
         {% endfor %}
     {% endwith %}
 
-    <div class="grid">
+    <div class="summary-strip">
+        <div class="summary-box">
+            <div class="label">Último NSU</div>
+            <div class="value">{{ last_nsu }}</div>
+        </div>
+
+        <div class="summary-box">
+            <div class="label">Arquivos exibidos</div>
+            <div class="value">{{ docs|length }}</div>
+        </div>
+
+        <div class="summary-box">
+            <div class="label">Notas no filtro</div>
+            <div class="value">{{ filtered_docs|length }}</div>
+        </div>
+
+        <div class="summary-box">
+            <div class="label">Certificado</div>
+            <div class="value">
+                {% if pfx_ok %}
+                    <span class="ok">OK</span>
+                {% else %}
+                    <span class="bad">Falha</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
         <section class="card">
-            <h2>Baixar documentos</h2>
-            <form method="post" action="/baixar">
-                <label for="nsu_inicial">NSU inicial</label>
-                <input id="nsu_inicial" name="nsu_inicial" type="number"
-                       value="{{ last_nsu + 1 }}" min="0">
-
-                <label for="limite">Máximo de NSUs nesta execução</label>
-                <input id="limite" name="limite" type="number"
-                       value="{{ default_limit }}" min="1" max="10000">
-
-                <button type="submit">Baixar novos documentos</button>
-            </form>
-            <p class="muted">
-                A execução para automaticamente após a quantidade configurada de
-                NSUs consecutivos sem documento.
+            <h2>Sincronizar documentos</h2>
+            <p class="card-subtitle">
+                Consulta os documentos disponíveis na API do Ambiente de Dados Nacional
+                e salva os XMLs localmente.
             </p>
+
+            <form method="post" action="/baixar">
+                <div class="form-grid">
+                    <div>
+                        <label for="nsu_inicial">NSU inicial</label>
+                        <input
+                            id="nsu_inicial"
+                            name="nsu_inicial"
+                            type="number"
+                            value="{{ last_nsu + 1 }}"
+                            min="0"
+                            required
+                        >
+                    </div>
+
+                    <div>
+                        <label for="limite">Máximo de consultas</label>
+                        <input
+                            id="limite"
+                            name="limite"
+                            type="number"
+                            value="{{ default_limit }}"
+                            min="1"
+                            max="10000"
+                            required
+                        >
+                    </div>
+
+                    <div class="field-full button-row">
+                        <button type="submit">Sincronizar novos documentos</button>
+
+                        <a
+                            class="button-link outline"
+                            href="/teste?nsu={{ last_nsu + 1 }}"
+                            target="_blank"
+                        >
+                            Testar próximo NSU
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+            <div class="helper">
+                O programa usa o maior NSU devolvido pela API e continua a partir dele.
+                Quando não houver novos documentos, a sincronização será encerrada.
+            </div>
         </section>
 
         <aside class="card">
-            <h2>Status</h2>
-            <p>Certificado:
-                {% if pfx_ok %}
-                    <span class="ok">encontrado</span>
-                {% else %}
-                    <span class="bad">não encontrado</span>
-                {% endif %}
-            </p>
-            <p><small><code>{{ pfx_path }}</code></small></p>
-            <p>Último NSU: <strong>{{ last_nsu }}</strong></p>
-            <p>API: <small><code>{{ api_base }}</code></small></p>
-            <p>CPF: <strong>{{ documento or "não informado" }}</strong></p>
-            <p><a href="/teste?nsu={{ last_nsu + 1 }}" target="_blank">Testar próximo NSU</a></p>
+            <h2>Status da configuração</h2>
+            <p class="card-subtitle">Informações utilizadas pelo programa nesta execução.</p>
 
-            <form method="post" action="/ajustar-nsu">
+            <div class="status-list">
+                <div class="status-item">
+                    <span class="status-label">Certificado A1</span>
+                    <span class="status-value">
+                        {% if pfx_ok %}
+                            <span class="ok">Encontrado</span>
+                        {% else %}
+                            <span class="bad">Não encontrado</span>
+                        {% endif %}
+                    </span>
+                    <span class="status-value">
+                        <code>{{ pfx_path }}</code>
+                    </span>
+                </div>
+
+                <div class="status-item">
+                    <span class="status-label">CPF da consulta</span>
+                    <span class="status-value">{{ documento or "não informado" }}</span>
+                </div>
+
+                <div class="status-item">
+                    <span class="status-label">API de distribuição</span>
+                    <span class="status-value"><code>{{ api_base }}</code></span>
+                </div>
+            </div>
+
+            <form class="nsu-form" method="post" action="/ajustar-nsu">
                 <label for="ultimo_nsu">Corrigir último NSU</label>
-                <input id="ultimo_nsu" name="ultimo_nsu" type="number" value="{{ last_nsu }}">
-                <button class="secondary" type="submit">Salvar NSU</button>
+                <input
+                    id="ultimo_nsu"
+                    name="ultimo_nsu"
+                    type="number"
+                    value="{{ last_nsu }}"
+                    min="0"
+                    required
+                >
+                <button class="secondary" type="submit">Salvar NSU informado</button>
             </form>
         </aside>
     </div>
 
+    <section class="card filter-card">
+        <div class="section-title">
+            <div>
+                <h2>Consultar notas por período</h2>
+                <p class="card-subtitle" style="margin-bottom:0">
+                    O filtro considera a data de emissão extraída dos XMLs já sincronizados.
+                </p>
+            </div>
+        </div>
+
+        <form method="get" action="/filtrar">
+            <div class="form-grid">
+                <div>
+                    <label for="data_inicial">Data inicial</label>
+                    <input
+                        id="data_inicial"
+                        name="data_inicial"
+                        type="date"
+                        value="{{ data_inicial }}"
+                        required
+                    >
+                </div>
+
+                <div>
+                    <label for="data_final">Data final</label>
+                    <input
+                        id="data_final"
+                        name="data_final"
+                        type="date"
+                        value="{{ data_final }}"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit">Aplicar filtro</button>
+
+                {% if data_inicial and data_final %}
+                    <a class="button-link outline" href="/">Limpar filtro</a>
+                {% endif %}
+            </div>
+        </form>
+
+        {% if data_inicial and data_final %}
+            <form method="get" action="/baixar-periodo" style="margin-top:22px">
+                <input type="hidden" name="data_inicial" value="{{ data_inicial }}">
+                <input type="hidden" name="data_final" value="{{ data_final }}">
+
+                <div class="checkbox-row">
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="xml" value="1" checked>
+                        Incluir XML
+                    </label>
+
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="pdf" value="1" checked>
+                        Incluir PDF/DANFSe
+                    </label>
+                </div>
+
+                <div class="filter-actions">
+                    <button type="submit">Baixar período em ZIP</button>
+                </div>
+            </form>
+        {% endif %}
+    </section>
+
+    {% if data_inicial and data_final %}
+        <section class="card">
+            <div class="section-title">
+                <div>
+                    <h2>Resultado do período</h2>
+                    <p class="card-subtitle" style="margin-bottom:0">
+                        {{ data_inicial }} até {{ data_final }} •
+                        {{ filtered_docs|length }} nota(s)
+                    </p>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Número</th>
+                            <th>NSU</th>
+                            <th>Chave</th>
+                            <th>Arquivos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for doc in filtered_docs %}
+                        <tr>
+                            <td>{{ doc.data_emissao or "-" }}</td>
+                            <td>
+                                {% if doc.numero_nfse %}
+                                    <span class="tag">{{ doc.numero_nfse }}</span>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ doc.nsu }}</td>
+                            <td class="file-name">
+                                {{ doc.chave_acesso or "-" }}
+                            </td>
+                            <td>
+                                <div class="small-actions">
+                                    <a class="small-link" href="/arquivo/{{ doc.id }}">
+                                        XML
+                                    </a>
+                                    <a class="small-link" href="/pdf/{{ doc.id }}">
+                                        PDF
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                Nenhuma NFS-e localizada nesse período.
+                                Sincronize os documentos antes de aplicar o filtro.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+
     <section class="card">
-        <h2>Últimos arquivos</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>NSU</th><th>Arquivo</th><th>Data</th>
-                    <th>Tamanho</th><th>Download</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for doc in docs %}
-                <tr>
-                    <td>{{ doc.nsu }}</td>
-                    <td>{{ doc.nome_arquivo }}</td>
-                    <td>{{ doc.criado_em }}</td>
-                    <td>{{ (doc.tamanho / 1024)|round(1) }} KB</td>
-                    <td><a href="/arquivo/{{ doc.id }}">baixar</a></td>
-                </tr>
-            {% else %}
-                <tr><td colspan="5">Nenhum arquivo baixado.</td></tr>
-            {% endfor %}
-            </tbody>
-        </table>
+        <div class="section-title">
+            <div>
+                <h2>Últimos arquivos sincronizados</h2>
+                <p class="card-subtitle" style="margin-bottom:0">
+                    Exibição dos 100 registros mais recentes do banco local.
+                </p>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>NSU</th>
+                        <th>Tipo</th>
+                        <th>Número</th>
+                        <th>Data da nota</th>
+                        <th>Arquivo</th>
+                        <th>Tamanho</th>
+                        <th>Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for doc in docs %}
+                    <tr>
+                        <td>{{ doc.nsu }}</td>
+                        <td>
+                            <span class="tag">{{ doc.tipo_documento or "DFE" }}</span>
+                        </td>
+                        <td>{{ doc.numero_nfse or "-" }}</td>
+                        <td>{{ doc.data_emissao or "-" }}</td>
+                        <td class="file-name">{{ doc.nome_arquivo }}</td>
+                        <td>{{ (doc.tamanho / 1024)|round(1) }} KB</td>
+                        <td>
+                            <div class="small-actions">
+                                <a class="small-link" href="/arquivo/{{ doc.id }}">XML</a>
+
+                                {% if doc.tipo_documento == "NFSE" %}
+                                    <a class="small-link" href="/pdf/{{ doc.id }}">PDF</a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            Nenhum arquivo sincronizado até o momento.
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </section>
 
     <section class="card">
-        <h2>Histórico de execuções</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Início</th><th>Faixa</th><th>Consultados</th>
-                    <th>Salvos</th><th>Vazios</th><th>Erros</th><th>Mensagem</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for item in executions %}
-                <tr>
-                    <td>{{ item.inicio }}</td>
-                    <td>{{ item.nsu_inicial }}–{{ item.nsu_final or "" }}</td>
-                    <td>{{ item.consultados }}</td>
-                    <td>{{ item.salvos }}</td>
-                    <td>{{ item.vazios }}</td>
-                    <td>{{ item.erros }}</td>
-                    <td>{{ item.mensagem or "" }}</td>
-                </tr>
-            {% else %}
-                <tr><td colspan="7">Nenhuma execução registrada.</td></tr>
-            {% endfor %}
-            </tbody>
-        </table>
+        <div class="section-title">
+            <div>
+                <h2>Histórico de execuções</h2>
+                <p class="card-subtitle" style="margin-bottom:0">
+                    Registro das últimas tentativas de sincronização.
+                </p>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Início</th>
+                        <th>Faixa de NSU</th>
+                        <th>Consultas</th>
+                        <th>Salvos</th>
+                        <th>Vazios</th>
+                        <th>Erros</th>
+                        <th>Mensagem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for item in executions %}
+                    <tr>
+                        <td>{{ item.inicio }}</td>
+                        <td>{{ item.nsu_inicial }}–{{ item.nsu_final or "" }}</td>
+                        <td>{{ item.consultados }}</td>
+                        <td>{{ item.salvos }}</td>
+                        <td>{{ item.vazios }}</td>
+                        <td>{{ item.erros }}</td>
+                        <td>{{ item.mensagem or "" }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            Nenhuma execução registrada.
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </section>
 </main>
+
+<footer>
+    NFS-e Downloader Local • Os arquivos são armazenados apenas neste computador.
+</footer>
 </body>
 </html>

@@ -1,0 +1,20 @@
+# Arquivos sensíveis
+.env
+*.pfx
+*.p12
+
+# Ambiente virtual
+.venv/
+
+# Banco de dados local
+dados/nfse.db
+
+# Downloads (XML/PDF)
+dados/downloads/
+
+# Arquivos temporários do Python
+__pycache__/
+*.pyc
+
+# VS Code
+.vscode/
