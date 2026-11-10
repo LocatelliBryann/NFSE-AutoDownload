@@ -1,0 +1,11 @@
+.env
+*.pfx
+*.p12
+.venv/
+__pycache__/
+*.pyc
+dados/downloads/
+dados/jobs/
+dados/automaticos/
+dados/*.db
+dados/*.log

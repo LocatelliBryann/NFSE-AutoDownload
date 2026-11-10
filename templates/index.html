@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Download de NFS-e</title>
+    <style>
+        :root {
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            color: #172033;
+            --primary: #174a78;
+            --primary-dark: #10395e;
+            --surface: #fff;
+            --border: #dbe4ee;
+            --muted: #667085;
+            --success: #167044;
+            --danger: #b42318;
+            --shadow: 0 12px 32px rgba(18,48,79,.10);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at top right, rgba(23,74,120,.11), transparent 30rem), #edf3f8;
+        }
+        header {
+            padding: 30px 24px;
+            color: #fff;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            box-shadow: 0 8px 24px rgba(15,57,94,.22);
+        }
+        .wrap { max-width: 980px; margin: auto; }
+        h1 { margin: 0; font-size: clamp(2rem,4vw,2.8rem); letter-spacing: -.04em; }
+        header p { margin: 9px 0 0; color: rgba(255,255,255,.82); }
+        main { max-width: 980px; margin: 34px auto; padding: 0 18px 50px; }
+        .card {
+            padding: 30px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+        }
+        h2 { margin: 0; font-size: 1.55rem; }
+        .subtitle { margin: 10px 0 26px; color: var(--muted); line-height: 1.55; }
+        .date-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
+        label { display: block; margin-bottom: 8px; font-weight: 750; color: #27364b; }
+        input[type=date] {
+            width: 100%; padding: 13px 14px; border: 1px solid #c8d5e3;
+            border-radius: 10px; font-size: 1rem;
+        }
+        .options { display: flex; flex-wrap: wrap; gap: 20px; margin: 22px 0; }
+        .check { display: inline-flex; align-items: center; gap: 9px; font-weight: 650; }
+        .check input { width: 18px; height: 18px; }
+        button {
+            width: 100%; border: 0; border-radius: 11px; padding: 15px 20px;
+            color: #fff; background: var(--primary); font-size: 1.05rem;
+            font-weight: 800; cursor: pointer;
+        }
+        button:hover { background: var(--primary-dark); }
+        button:disabled { opacity: .65; cursor: wait; }
+        .progress-panel {
+            display: none; margin-top: 24px; padding: 18px;
+            border: 1px solid var(--border); border-radius: 13px; background: #f8fbfe;
+        }
+        .progress-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+        .progress-message { font-weight: 700; }
+        .progress-number { color: var(--primary); font-weight: 800; }
+        .progress-track { height: 16px; border-radius: 999px; background: #dfe8f1; overflow: hidden; }
+        .progress-bar {
+            width: 0; height: 100%; border-radius: inherit;
+            background: linear-gradient(90deg, #174a78, #2d78b7);
+            transition: width .35s ease;
+        }
+        .notice {
+            margin-top: 20px; padding: 14px 16px; border-radius: 11px;
+            background: #f5f8fb; color: var(--muted); line-height: 1.55;
+        }
+        .auto-ready {
+            margin-bottom: 18px; padding: 15px 17px; border-radius: 12px;
+            background: #e6f7ed; color: var(--success); border: 1px solid #b7ebca;
+        }
+        .auto-ready a { color: var(--success); font-weight: 800; }
+        .error-box {
+            display: none; margin-top: 16px; padding: 13px 15px;
+            border-radius: 10px; background: #fee4e2; color: var(--danger);
+        }
+        .status {
+            display: grid; grid-template-columns: repeat(3,minmax(0,1fr));
+            gap: 14px; margin-top: 22px;
+        }
+        .status-box {
+            padding: 15px; border: 1px solid var(--border);
+            border-radius: 13px; background: #fbfdff;
+        }
+        .status-label {
+            color: var(--muted); font-size: .78rem; font-weight: 800;
+            text-transform: uppercase; letter-spacing: .04em;
+        }
+        .status-value { margin-top: 6px; font-size: 1.12rem; font-weight: 800; word-break: break-word; }
+        .ok { color: var(--success); }
+        footer { text-align: center; color: var(--muted); padding: 0 18px 30px; font-size: .88rem; }
+        @media(max-width:700px) {
+            .date-grid,.status { grid-template-columns: 1fr; }
+            .card { padding: 22px; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="wrap">
+        <h1>Download de NFS-e</h1>
+        <p>Execução automática diária e download manual por período.</p>
+    </div>
+</header>
+
+<main>
+    {% if automatico_ontem %}
+        <div class="auto-ready">
+            O arquivo automático de ontem já está pronto:
+            <a href="/automatico/{{ ontem }}">baixar NFSe_{{ ontem }}.zip</a>
+        </div>
+    {% endif %}
+
+    <section class="card">
+        <h2>Baixar notas por período</h2>
+        <p class="subtitle">
+            Escolha a data. O sistema sincroniza os documentos novos, baixa os DANFSe
+            em paralelo e libera o ZIP quando concluir.
+        </p>
+
+        <form id="downloadForm">
+            <div class="date-grid">
+                <div>
+                    <label for="data_inicial">Data inicial</label>
+                    <input id="data_inicial" name="data_inicial" type="date"
+                           value="{{ data_inicial }}" required>
+                </div>
+                <div>
+                    <label for="data_final">Data final</label>
+                    <input id="data_final" name="data_final" type="date"
+                           value="{{ data_final }}" required>
+                </div>
+            </div>
+
+            <div class="options">
+                <label class="check">
+                    <input type="checkbox" id="pdf" checked> Incluir PDFs/DANFSe
+                </label>
+                <label class="check">
+                    <input type="checkbox" id="xml"> Incluir XMLs
+                </label>
+            </div>
+
+            <button id="downloadButton" type="submit">Sincronizar e baixar ZIP</button>
+        </form>
+
+        <div id="progressPanel" class="progress-panel">
+            <div class="progress-head">
+                <span id="progressMessage" class="progress-message">Iniciando...</span>
+                <span id="progressNumber" class="progress-number">0%</span>
+            </div>
+            <div class="progress-track">
+                <div id="progressBar" class="progress-bar"></div>
+            </div>
+        </div>
+
+        <div id="errorBox" class="error-box"></div>
+
+        <div class="status">
+            <div class="status-box">
+                <div class="status-label">Certificado</div>
+                <div class="status-value">
+                    {% if pfx_ok %}<span class="ok">Pronto</span>{% else %}Não encontrado{% endif %}
+                </div>
+            </div>
+            <div class="status-box">
+                <div class="status-label">Último NSU</div>
+                <div class="status-value">{{ last_nsu }}</div>
+            </div>
+            <div class="status-box">
+                <div class="status-label">Automático</div>
+                <div class="status-value">Diariamente às 03:00</div>
+            </div>
+        </div>
+
+        <div class="notice">
+            O computador precisa estar ligado às 03:00. Se estiver desligado ou suspenso,
+            a tarefa pode ser configurada para executar assim que o Windows voltar.
+        </div>
+    </section>
+</main>
+
+<footer>NFS-e Downloader Local • Uso interno</footer>
+
+<script>
+const form = document.getElementById("downloadForm");
+const button = document.getElementById("downloadButton");
+const panel = document.getElementById("progressPanel");
+const bar = document.getElementById("progressBar");
+const number = document.getElementById("progressNumber");
+const message = document.getElementById("progressMessage");
+const errorBox = document.getElementById("errorBox");
+
+function setProgress(value, text) {
+    const percentage = Math.max(0, Math.min(100, Number(value) || 0));
+    bar.style.width = percentage + "%";
+    number.textContent = percentage + "%";
+    message.textContent = text || "Processando...";
+}
+
+async function pollJob(jobId) {
+    const response = await fetch(`/api/progresso/${jobId}`, {cache: "no-store"});
+    const job = await response.json();
+
+    if (!response.ok) {
+        throw new Error(job.erro || "Falha ao consultar o progresso.");
+    }
+
+    setProgress(job.progresso, job.mensagem);
+
+    if (job.status === "concluido") {
+        button.disabled = false;
+        button.textContent = "Sincronizar e baixar ZIP";
+        window.location.href = `/api/download/${jobId}`;
+        return;
+    }
+
+    if (job.status === "erro") {
+        throw new Error(job.mensagem || "Erro durante o processamento.");
+    }
+
+    window.setTimeout(() => pollJob(jobId).catch(showError), 700);
+}
+
+function showError(error) {
+    button.disabled = false;
+    button.textContent = "Sincronizar e baixar ZIP";
+    errorBox.style.display = "block";
+    errorBox.textContent = error.message || String(error);
+}
+
+form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    errorBox.style.display = "none";
+    panel.style.display = "block";
+    button.disabled = true;
+    button.textContent = "Processando...";
+    setProgress(0, "Iniciando...");
+
+    try {
+        const response = await fetch("/api/iniciar-download", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                data_inicial: document.getElementById("data_inicial").value,
+                data_final: document.getElementById("data_final").value,
+                pdf: document.getElementById("pdf").checked ? "1" : "0",
+                xml: document.getElementById("xml").checked ? "1" : "0"
+            })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.erro || "Não foi possível iniciar.");
+        }
+
+        pollJob(data.job_id).catch(showError);
+    } catch (error) {
+        showError(error);
+    }
+});
+</script>
+</body>
+</html>
